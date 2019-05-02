@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>three.js - Jotunheimen</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<style>
+    body { margin: 0; overflow: hidden;}
+</style>
+</head>
+<body>
+<div id="webgl"></div>
+<script src="lib/three.min.js"></script>
+<script src="lib/TrackballControls.js"></script>
+<script src="lib/TerrainLoader.js"></script> 
+<script>
+    var width  = window.innerWidth,
+        height = window.innerHeight;
+    var params = getSearchParameters();
+    
+    var img = document.createElement('img');    
+    img.src='H0334_0001_ND3/H0334_0001_ND3.jpg';
+    //img.src=params.namePng;	 
+      
+    var scene = new THREE.Scene();
+    
+	//Light
+	var light = new THREE.DirectionalLight( 0xffffff );
+	light.position.set( 0, 0, 1 ).normalize();
+	scene.add(light);
+	
+	//Camera
+    var camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100000);
+    camera.position.set(0, -2000, 2000);
+    
+    //Renderer
+    //var renderer = new THREE.WebGLRenderer();
+    var renderer = new THREE.WebGLRenderer({ alpha: true });
+    renderer.setSize(width, height);
+    //renderer.setClearColor( 0xb36825, 1);
+    renderer.setClearColor( 0x000000, 1);
+    
+    //Terrain
+    var terrainLoader = new THREE.TerrainLoader();
+    terrainLoader.load('H0334_0001_ND3/H0334_0001_ND3.bin', function(data) {
+    	var widthFP = img.naturalWidth;
+		var heightFP = img.naturalHeight;
+    	console.log("width "+widthFP);
+    	//Axis
+    	var axes = new THREE.AxisHelper(widthFP);
+    	scene.add(axes);  
+        var geometry = new THREE.PlaneGeometry(widthFP, heightFP, 78, 299);
+        //var geometry = new THREE.PlaneGeometry(200, 200,199,199 );
+        for (var i = 0, l = geometry.vertices.length; i < l; i++) {
+            geometry.vertices[i].z = data[i] / 65535 * (widthFP*0.05);
+        }
+        
+        //var material = new THREE.MeshPhongMaterial({
+         //  color: 0xdddddd, 
+         //   wireframe: true
+        //});
+        
+        //Texture
+        var material = new THREE.MeshPhongMaterial({
+  			map: THREE.ImageUtils.loadTexture('H0334_0001_ND3/H0334_0001_ND3.jpg')
+ 		});
+ 		
+ 		//Plane
+        var plane = new THREE.Mesh(geometry, material);
+        scene.add(plane);
+    });
+    
+    //Controls
+    var controls = new THREE.TrackballControls(camera); 
+    document.getElementById('webgl').appendChild(renderer.domElement);
+    render();
+    
+    function render() {
+        controls.update();    
+        requestAnimationFrame(render);
+        renderer.render(scene, camera);
+    }
+    
+    function getSearchParameters() {
+      var prmstr = window.location.search.substr(1);
+      return prmstr != null && prmstr != "" ? transformToAssocArray(prmstr) : {};
+	}
+
+	function transformToAssocArray( prmstr ) {
+      var params = {};
+      var prmarr = prmstr.split("&");
+      for ( var i = 0; i < prmarr.length; i++) {
+        var tmparr = prmarr[i].split("=");
+        params[tmparr[0]] = tmparr[1];
+      }
+      return params;
+	}
+
+</script>
+</body>
+</html>
