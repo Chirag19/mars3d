@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>three.js - Jotunheimen</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<style>
+    body { margin: 0; overflow: hidden;}
+</style>
+</head>
+<body>
+<div id="webgl"></div>
+<script src="lib/three.min.js"></script>
+<script src="lib/TrackballControls.js"></script>
+<script src="lib/TerrainLoader.js"></script> 
+<script>
+
+    var width  = window.innerWidth,
+        height = window.innerHeight;
+    var params = getSearchParameters();
+   
+    
+    var namefile = 'HC509_0000_P13';
+    var file = 'png/'+namefile+'.png';
+    
+    var img = document.createElement('img');    
+    img.src= file;
+    //img.src=params.namePng;	 
+      
+    var scene = new THREE.Scene();
+    
+	//Light
+	//var light = new THREE.DirectionalLight( 0xffffff );
+	//light.position.set( 0, 0, 1 ).normalize();
+	//scene.add(light);
+	
+	scene.add(new THREE.AmbientLight(0xeeeeee));
+	
+	//Camera
+    var camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100000);
+    camera.position.set(0, -2000, 2000);
+    
+    //Renderer
+    //var renderer = new THREE.WebGLRenderer();
+    var renderer = new THREE.WebGLRenderer({ alpha: true });
+    renderer.setSize(width, height);
+    //renderer.setClearColor( 0xb36825, 1);
+    renderer.setClearColor( 0x000000, 1);
+    
+    //Terrain
+    var terrainLoader = new THREE.TerrainLoader();
+    var name = 'bin/'+namefile+'.bin';
+    terrainLoader.load(name, function(data) {
+    	var widthFP = img.naturalWidth;
+		var heightFP = img.naturalHeight;
+		
+    	console.log("width "+widthFP);
+    	console.log("heightFP "+heightFP);
+    	//Axis
+    	var axes = new THREE.AxisHelper(widthFP);
+    	scene.add(axes);  
+    	
+        var geometry = new THREE.PlaneGeometry(widthFP, heightFP, widthFP-1, heightFP-1);
+        //var geometry = new THREE.PlaneGeometry(200, 200,199,199 );
+        for (var i = 0, l = geometry.vertices.length; i < l; i++) {
+            //smooth
+            //geometry.vertices[i].z = Math.log((data[i]/65535));
+            //no smooth
+            geometry.vertices[i].z = (data[i]/65535 * 10 );
+            
+        }
+        
+        //var material = new THREE.MeshPhongMaterial({
+         //  color: 0xdddddd, 
+         //   wireframe: true
+        //});
+        
+        //Texture
+        var material = new THREE.MeshPhongMaterial({
+  			map: THREE.ImageUtils.loadTexture(file)
+ 		});
+ 		//var material = new THREE.MeshPhongMaterial({
+  		//	color: 0xdddddd, 
+ 		//	 wireframe: true
+		//});
+ 		
+ 		//Plane
+        var plane = new THREE.Mesh(geometry, material);
+        scene.add(plane);
+    });
+    
+    //Controls
+    var controls = new THREE.TrackballControls(camera); 
+    document.getElementById('webgl').appendChild(renderer.domElement);
+    render();
+    
+    function render() {
+        controls.update();    
+        requestAnimationFrame(render);
+        renderer.render(scene, camera);
+    }
+    
+    function getSearchParameters() {
+      var prmstr = window.location.search.substr(1);
+      return prmstr != null && prmstr != "" ? transformToAssocArray(prmstr) : {};
+	}
+
+	function transformToAssocArray( prmstr ) {
+      var params = {};
+      var prmarr = prmstr.split("&");
+      for ( var i = 0; i < prmarr.length; i++) {
+        var tmparr = prmarr[i].split("=");
+        params[tmparr[0]] = tmparr[1];
+      }
+      return params;
+	}
+	var vec = new THREE.Vector3(); // create once and reuse
+var pos = new THREE.Vector3(); // create once and reuse
+
+vec.set(
+    ( event.clientX / window.innerWidth ) * 2 - 1,
+    - ( event.clientY / window.innerHeight ) * 2 + 1,
+    0.5 );
+
+
+</script>
+</body>
+</html>
